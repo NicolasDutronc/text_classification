@@ -1,19 +1,17 @@
 from torch.utils.data import Dataset
 import pandas as pd
+import numpy as np
 import torch
 
 
 class TextDataset(Dataset):
 
     def __init__(self, labels, sequences):
-        self.df = pd.DataFrame()
-        self.df['labels'] = pd.Series(labels).apply(lambda s: 1 if s == 'C' else 0)
-        self.df['sequences'] = pd.Series(sequences)
+        self.labels = list(map(lambda label: 1 if label == 'C' else 0, labels))
+        self.sequences = sequences
 
     def __len__(self):
-        return len(self.df)
+        return len(self.labels)
 
     def __getitem__(self, idx):
-        item = self.df.iloc[idx]
-        # print(item)
-        return torch.LongTensor(item.sequences), torch.LongTensor([item.labels])
+        return torch.tensor(self.sequences[idx], dtype=torch.long), torch.tensor([self.labels[idx]], dtype=torch.float)

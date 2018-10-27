@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -11,6 +12,15 @@ class SimpleModel(nn.Module):
         self.out = nn.Linear(128, 1)
 
     def forward(self, x):
-        embeds = self.embeddings(x.unsqueeze(0)).squeeze()
+        # print('x shape:', x.shape)
+        # print('x:', x)
+        embeds = self.embeddings(x).squeeze()
+        # print('embeds shape:', embeds.shape)
+        # print('embeds:', embeds)
         hidden = F.relu(self.linear(embeds))
-        return self.out(hidden)
+        # print('hidden shape:', hidden.shape)
+        # print('hidden:', hidden)
+        pred = torch.sigmoid(self.out(hidden))
+        # print('pred shape:', pred.shape)
+        # print('pred:', pred)
+        return pred
