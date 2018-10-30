@@ -7,12 +7,13 @@ name = "pypi"
 jupyter = "*"
 pandas = "*"
 numpy = "*"
-torch = {file = "http://download.pytorch.org/whl/cu92/torch-0.4.1-cp36-cp36m-linux_x86_64.whl"}
 torchvision = "*"
 scikit-learn = "*"
 matplotlib = "*"
+torch = {file = "http://download.pytorch.org/whl/cu92/torch-0.4.1-cp36-cp36m-linux_x86_64.whl"}
 
 [dev-packages]
+pylint = "*"
 
 [requires]
 python_version = "3.6"
