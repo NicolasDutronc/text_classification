@@ -59,7 +59,7 @@ for i in range(num_epoch):
         optimizer.zero_grad()
         prediction = model(sequence)
         output = F.binary_cross_entropy(prediction, label)
-        epoch_loss += output
+        epoch_loss += float(output)
         output.backward()
         optimizer.step()
     print('train_loss:', epoch_loss / len(train_loader.dataset))
@@ -68,36 +68,40 @@ for i in range(num_epoch):
     test_labels = []
     test_predictions = []
     gc.collect()
-    for sequence, label in test_loader:
 
-        test_labels += label.detach().numpy().tolist()[0]
+    # test session
+    with torch.no_grad():
+        for sequence, label in test_loader:
 
-        sequence = sequence.cuda()
-        label = label.cuda()
+            test_labels += [float(x) for x in label.cpu().numpy().tolist()[0]]
 
-        prediction = model(sequence)
-        test_predictions += (prediction.detach().cpu().numpy().tolist())
-        output = F.binary_cross_entropy(prediction, label)
-        test_loss += output
-    print('test loss:', test_loss / len(test_loader.dataset))
-    test_losses.append(test_loss / len(test_loader.dataset))
-    print('test labels:', test_labels)
-    print('test predictions:', test_predictions)
+            sequence = sequence.cuda()
+            label = label.cuda()
 
-    print('auc:', roc_auc_score(test_labels, test_predictions))
+            prediction = model(sequence)
 
-    [fpr, tpr, thr] = roc_curve(test_labels, test_predictions)
-    print('sensitivity:', tpr)
-    print('specificity:', 1 - fpr)
+            test_predictions += [float(x) for x in prediction.cpu().numpy()]
+            output = F.binary_cross_entropy(prediction, label)
+            test_loss += float(output)
+        print('test loss:', test_loss / len(test_loader.dataset))
+        test_losses.append(test_loss / len(test_loader.dataset))
+        # print('test labels:', test_labels)
+        # print('test predictions:', test_predictions)
 
-    plt.plot(fpr, tpr, color=cmap(i), lw=2, label=i)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('1 - specificite', fontsize=14)
-    plt.ylabel('Sensibilite', fontsize=14)
-    plt.legend()
+        print('auc:', roc_auc_score(test_labels, test_predictions))
 
-    gc.collect()
+        [fpr, tpr, thr] = roc_curve(test_labels, test_predictions)
+        print('sensitivity:', tpr)
+        print('specificity:', 1 - fpr)
+
+        plt.plot(fpr, tpr, color=cmap(i), lw=2, label=i)
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('1 - specificite', fontsize=14)
+        plt.ylabel('Sensibilite', fontsize=14)
+        plt.legend()
+
+        gc.collect()
 
 plt.show()
 
