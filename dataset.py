@@ -31,10 +31,11 @@ class TextDataset(Dataset):
 class TorchTextDataset(data.Dataset):
 
     @staticmethod
-    def sort_key(example):
-        return len(example.text)
+    def sort_key(ex): return len(ex.text)
 
     def __init__(self, sentences, labels):
+
+        labels = list(map(lambda label: 0 if label == 'C' else 1, labels))
 
         # build tokenizer
         spacy_fr = spacy.load('fr')
@@ -42,6 +43,7 @@ class TorchTextDataset(data.Dataset):
 
         # compute max length sentence for padding
         max_len = np.max([len(s) for s in sentences])
+        print('max length:', max_len)
 
         # define fields
         self.text_field = data.Field(
@@ -50,7 +52,7 @@ class TorchTextDataset(data.Dataset):
             stop_words=STOP_WORDS,
             fix_length=max_len,
             batch_first=True)
-        self.label_field = data.Field(sequential=False)
+        self.label_field = data.Field(sequential=False, use_vocab=False)
         fields = [('text', self.text_field), ('label', self.label_field)]
 
         # build the examples
@@ -61,11 +63,11 @@ class TorchTextDataset(data.Dataset):
         # build the dataset
         super(TorchTextDataset, self).__init__(examples, fields)
 
-    def get_iterators(self, split_ratio=0.8, batch_size=64):
-        train_data, valid_data = dataset.split(split_ratio=split_ratio)
+    def get_iterators(self, split_ratio=0.8, batch_size=(64, 64)):
+        train_data, valid_data = self.split(split_ratio=split_ratio)
         self.text_field.build_vocab(train_data, valid_data)
         self.label_field.build_vocab(train_data, valid_data)
         return data.Iterator.splits(
             (train_data, valid_data),
-            batch_sizes=(batch_size, len(valid_data))
+            batch_sizes=batch_size
         )
